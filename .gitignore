@@ -1,0 +1,8 @@
+# IDE Files
+/.idea
+
+# Build / Library Files
+/node_modules
+/dist
+/.cache
+/yarn-error.log

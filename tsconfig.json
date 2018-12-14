@@ -1,0 +1,25 @@
+{
+	"compilerOptions": {
+		"outDir": "dist/",
+		"target": "es5",
+		"module": "commonjs",
+		"jsx": "react",
+		"declaration": true,
+		"sourceMap": true,
+		"strict": true,
+		"noImplicitAny": true,
+		"skipLibCheck": true,
+		"strictNullChecks": false,
+		"strictFunctionTypes": true,
+		"strictBindCallApply": true,
+		"noImplicitThis": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noImplicitReturns": true,
+		"esModuleInterop": true
+	},
+	"exclude": [
+		"node_modules",
+		"dist"
+	]
+}
