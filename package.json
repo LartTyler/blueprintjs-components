@@ -2,15 +2,15 @@
 	"name": "@dbstudios/blueprintjs-components",
 	"license": "GPL-3.0",
 	"author": "Tyler Lartonoix <tyler@lartonoix.com> (https://github.com/LartTyler)",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "A collection of components built with BlueprintJS",
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
 	"repository": "https://github.com/LartTyler/blueprintjs-components.git",
 	"private": false,
 	"scripts": {
-		"build": "tsc",
-		"watch": "yarn build --watch"
+		"build": "rm -rf ./dist && tsc",
+		"watch": "tsc --watch --sourceMap"
 	},
 	"files": [
 		"dist/**/*"
