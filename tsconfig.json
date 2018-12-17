@@ -5,7 +5,6 @@
 		"module": "commonjs",
 		"jsx": "react",
 		"declaration": true,
-		"sourceMap": true,
 		"strict": true,
 		"noImplicitAny": true,
 		"skipLibCheck": true,
