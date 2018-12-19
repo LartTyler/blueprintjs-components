@@ -52,7 +52,7 @@ export interface ISelectProps<T> extends ICommonSelectProps<T> {
 	/**
 	 * A callback to invoke when an item is selected.
 	 */
-	onItemSelect: (selected: T, event: React.SyntheticEvent<HTMLElement>) => void;
+	onItemSelect: (selected: T) => void;
 
 	/**
 	 * The currently selected value.
