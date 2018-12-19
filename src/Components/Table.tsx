@@ -177,7 +177,7 @@ export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
 
 		for (let index = 0; index < dataSource.length; index++) {
 			const datum = dataSource[index];
-			const cells = this.getCells(datum);
+			const cells = this.getCells(datum, index);
 
 			if (cells === null)
 				continue;
@@ -202,7 +202,7 @@ export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
 		return rows;
 	}
 
-	private getCells(row: T): React.ReactNode {
+	private getCells(row: T, rowIndex: number): React.ReactNode {
 		const {columns} = this.props;
 
 		const cells: React.ReactNode[] = [];
@@ -213,7 +213,7 @@ export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
 			let cell: React.ReactNode;
 
 			if (column.render)
-				cell = column.render(row, index);
+				cell = column.render(row, rowIndex);
 			else if (column.dataIndex)
 				cell = row[column.dataIndex];
 			else
