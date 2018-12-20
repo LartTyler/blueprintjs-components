@@ -103,6 +103,8 @@ export const MultiSelect: React.FC<IMultiSelectProps<any>> = <T extends any>(pro
 
 	return (
 		<BlueprintMultiSelect
+			itemListPredicate={props.itemListPredicate}
+			itemPredicate={props.itemPredicate}
 			items={props.items}
 			itemRenderer={createItemRenderer(props)}
 			onItemSelect={createItemSelectHandler(props)}
