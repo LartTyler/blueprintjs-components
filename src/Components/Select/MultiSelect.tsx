@@ -1,47 +1,8 @@
-import {Button, Intent, ITagInputProps, MenuItem, Spinner} from '@blueprintjs/core';
-import {IItemRendererProps, MultiSelect as BlueprintMultiSelect} from '@blueprintjs/select';
+import {Button, Intent, IResizeEntry, ITagInputProps, Menu, MenuItem, ResizeSensor, Spinner} from '@blueprintjs/core';
+import {IItemRendererProps, ItemListRenderer, MultiSelect as BlueprintMultiSelect} from '@blueprintjs/select';
 import * as React from 'react';
+import {List} from 'react-virtualized';
 import {ICommonSelectProps} from './ICommonSelectProps';
-
-const createItemRenderer = <T extends any>(props: IMultiSelectProps<T>) => {
-	if (props.itemRenderer)
-		return props.itemRenderer;
-
-	return (item: T, rendererProps: IItemRendererProps) => {
-		if (!rendererProps.modifiers.matchesPredicate)
-			return null;
-
-		let text: React.ReactNode = item;
-
-		if (props.itemTextRenderer)
-			text = props.itemTextRenderer(item);
-
-		const key = (props.itemKey ? item[props.itemKey] as unknown : item) as React.Key;
-
-		return (
-			<MenuItem
-				active={rendererProps.modifiers.active}
-				icon={props.selected.indexOf(item) === -1 ? 'blank' : 'tick'}
-				key={key}
-				text={text}
-				onClick={rendererProps.handleClick}
-			/>
-		);
-	};
-};
-
-const createItemSelectHandler = <T extends any>(props: IMultiSelectProps<T>) => {
-	return (item: T) => {
-		if (props.selected.indexOf(item) === -1)
-			props.onItemSelect(item);
-		else
-			props.onItemDeselect(item);
-	};
-};
-
-const createTagRenderer = <T extends any>(props: IMultiSelectProps<T>) => {
-	return props.tagRenderer || props.itemTextRenderer || ((item: T) => item);
-};
 
 export interface IMultiSelectProps<T> extends ICommonSelectProps<T> {
 	/**
@@ -81,40 +42,148 @@ export interface IMultiSelectProps<T> extends ICommonSelectProps<T> {
 	tagRenderer?: (item: T) => React.ReactNode;
 }
 
-export const MultiSelect: React.FC<IMultiSelectProps<any>> = <T extends any>(props: IMultiSelectProps<T>) => {
-	if (props.loading) {
-		return props.loadingSpinner || (
-			<Spinner intent={Intent.PRIMARY} size={Spinner.SIZE_SMALL} />
+interface IState {
+	width: number;
+}
+
+export class MultiSelect<T> extends React.PureComponent<IMultiSelectProps<T>, IState> {
+	public static defaultProps: Partial<IMultiSelectProps<any>> = {
+		noItemSelected: 'Make a selection...',
+		scrollToActiveItem: true,
+		virtualOptions: {
+			maxHeight: 297,
+			rowHeight: 30,
+		},
+	};
+
+	public state: Readonly<IState> = {
+		width: 0,
+	};
+
+	public render(): React.ReactNode {
+		if (this.props.loading) {
+			return this.props.loadingSpinner || (
+				<Spinner intent={Intent.PRIMARY} size={Spinner.SIZE_SMALL} />
+			);
+		}
+
+		const tagInputProps = this.props.tagInputProps || {
+			disabled: this.props.disabled,
+			onRemove: (_value: string, index: number) => this.props.onItemDeselect(this.props.selected[index]),
+			rightElement: this.props.selected.length > 0 && (
+				<Button
+					disabled={this.props.disabled}
+					icon="cross"
+					minimal={true}
+					onClick={this.props.onClear}
+				/>
+			),
+		};
+
+		return (
+			<BlueprintMultiSelect
+				itemListPredicate={this.props.itemListPredicate}
+				itemPredicate={this.props.itemPredicate}
+				items={this.props.items}
+				itemListRenderer={this.isVirtual() ? this.renderVirtualItemList : this.props.itemListRenderer}
+				itemRenderer={this.props.itemRenderer || this.renderItem}
+				onItemSelect={this.onItemSelect}
+				placeholder={this.props.noItemSelected}
+				popoverProps={this.props.popoverProps}
+				resetOnQuery={this.props.resetOnQuery}
+				resetOnSelect={this.props.resetOnSelect}
+				selectedItems={this.props.selected}
+				scrollToActiveItem={this.props.scrollToActiveItem}
+				tagRenderer={this.props.tagRenderer || this.props.itemTextRenderer || this.renderTag}
+				tagInputProps={tagInputProps}
+			/>
 		);
 	}
 
-	const tagInputProps = props.tagInputProps || {
-		disabled: props.disabled,
-		onRemove: (_value: string, index: number) => props.onItemDeselect(props.selected[index]),
-		rightElement: props.selected.length > 0 && (
-			<Button
-				disabled={props.disabled}
-				icon="cross"
-				minimal={true}
-				onClick={props.onClear}
-			/>
-		),
+	private renderVirtualItemList: ItemListRenderer<T> = props => {
+		const options = this.props.virtualOptions;
+		const items = props.filteredItems;
+
+		const height = Math.min(options.maxHeight, items.length * options.rowHeight);
+
+		let scrollIndex: number = undefined;
+
+		if (this.props.scrollToActiveItem)
+			scrollIndex = items.indexOf(props.activeItem) + 1;
+
+		return (
+			<div style={{marginBottom: 5}}>
+				<ResizeSensor onResize={this.onMenuResize}>
+					<Menu ulRef={this.handleMenuRef}>
+						<List
+							height={height}
+							rowHeight={options.rowHeight}
+							rowCount={items.length}
+							width={this.state.width}
+							rowRenderer={({key, style, index}) => (
+								<div key={key} style={style}>
+									{props.renderItem(items[index], index)}
+								</div>
+							)}
+							overscanRowCount={options.overscanRowCount}
+							scrollToIndex={scrollIndex}
+						/>
+					</Menu>
+				</ResizeSensor>
+			</div>
+		);
 	};
 
-	return (
-		<BlueprintMultiSelect
-			itemListPredicate={props.itemListPredicate}
-			itemPredicate={props.itemPredicate}
-			items={props.items}
-			itemRenderer={createItemRenderer(props)}
-			onItemSelect={createItemSelectHandler(props)}
-			placeholder={props.noItemSelected}
-			popoverProps={props.popoverProps}
-			resetOnQuery={props.resetOnQuery}
-			resetOnSelect={props.resetOnSelect}
-			selectedItems={props.selected}
-			tagRenderer={createTagRenderer(props)}
-			tagInputProps={tagInputProps}
-		/>
-	);
-};
+	private renderItem = (item: T, props: IItemRendererProps) => {
+		if (!props.modifiers.matchesPredicate)
+			return null;
+
+		let text: React.ReactNode = item;
+
+		if (this.props.itemTextRenderer)
+			text = this.props.itemTextRenderer(item);
+
+		const key = (this.props.itemKey ? item[this.props.itemKey] as unknown : item) as React.Key;
+
+		return (
+			<MenuItem
+				active={props.modifiers.active}
+				icon={this.props.selected.indexOf(item) !== -1 ? 'tick' : 'blank'}
+				key={key}
+				text={text}
+				onClick={props.handleClick}
+			/>
+		);
+	};
+
+	private renderTag = (item: T) => item;
+
+	private handleMenuRef = (ref: HTMLUListElement) => {
+		if (!ref) {
+			this.setState({
+				width: 0,
+			});
+
+			return;
+		}
+
+		ref.style.overflow = 'hidden';
+
+		this.setState({
+			width: ref.offsetWidth,
+		});
+	};
+
+	private onItemSelect = (item: T) => {
+		if (this.props.selected.indexOf(item) === -1)
+			this.props.onItemSelect(item);
+		else
+			this.props.onItemDeselect(item);
+	};
+
+	private onMenuResize = (entries: IResizeEntry[]) => this.setState({
+		width: entries[0].contentRect.width,
+	});
+
+	private isVirtual = () => this.props.virtual;
+}

@@ -1,6 +1,12 @@
 import {IPopoverProps} from '@blueprintjs/core';
-import {ItemListPredicate, ItemPredicate, ItemRenderer} from '@blueprintjs/select';
+import {ItemListPredicate, ItemListRenderer, ItemPredicate, ItemRenderer} from '@blueprintjs/select';
 import * as React from 'react';
+
+export interface IVirtualConfiguration {
+	maxHeight?: number;
+	overscanRowCount?: number;
+	rowHeight?: number;
+}
 
 export interface ICommonSelectProps<T> {
 	/**
@@ -18,6 +24,11 @@ export interface ICommonSelectProps<T> {
 	 * rendered in the select popover). If this property is not specified, the item itself is used as the key.
 	 */
 	itemKey?: keyof T;
+
+	/**
+	 * If provided, a callback to invoke to render the entire item list.
+	 */
+	itemListRenderer?: ItemListRenderer<T>;
 
 	/**
 	 * A callback that can be used to filter the entire item list.
@@ -66,4 +77,19 @@ export interface ICommonSelectProps<T> {
 	 * Whether or not the active item should be reset to the first matching item every time the query changes.
 	 */
 	resetOnQuery?: boolean;
+
+	/**
+	 * If true, the active item should be scrolled into view when initially displaying the select.
+	 */
+	scrollToActiveItem?: boolean;
+
+	/**
+	 * If true, items in the select will be rendered using the {@see List} component from `react-virtualized`.
+	 */
+	virtual?: boolean;
+
+	/**
+	 * Options for select virtualization. Ignored if {@see virtual} is `false`.
+	 */
+	virtualOptions?: IVirtualConfiguration;
 }

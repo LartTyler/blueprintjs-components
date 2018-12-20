@@ -1,52 +1,8 @@
-import {Button, IButtonProps, Intent, MenuItem, Spinner} from '@blueprintjs/core';
-import {IItemRendererProps, ItemRenderer, Select as BlueprintSelect} from '@blueprintjs/select';
+import {Button, IButtonProps, Intent, IResizeEntry, Menu, MenuItem, ResizeSensor, Spinner} from '@blueprintjs/core';
+import {IItemRendererProps, ItemListRenderer, Select as BlueprintSelect} from '@blueprintjs/select';
 import * as React from 'react';
+import {List} from 'react-virtualized';
 import {ICommonSelectProps} from './ICommonSelectProps';
-
-const createItemRenderer = <T extends any>(props: ISelectProps<T>): ItemRenderer<T> => {
-	if (props.itemRenderer)
-		return props.itemRenderer;
-
-	return (item: T, rendererProps: IItemRendererProps) => {
-		if (!rendererProps.modifiers.matchesPredicate)
-			return null;
-
-		let text: React.ReactNode = item;
-
-		if (props.itemTextRenderer)
-			text = props.itemTextRenderer(item);
-
-		const key = (props.itemKey ? item[props.itemKey] as unknown : item) as React.Key;
-
-		return (
-			<MenuItem
-				active={rendererProps.modifiers.active}
-				icon={item === props.selected ? 'tick' : 'blank'}
-				key={key}
-				text={text}
-				onClick={rendererProps.handleClick}
-			/>
-		);
-	};
-};
-
-const renderTarget = <T extends any>(props: ISelectProps<T>) => {
-	if (props.targetRenderer)
-		return props.targetRenderer(props.selected);
-
-	let selected: any = props.selected;
-
-	if (!selected)
-		selected = props.noItemSelected;
-	else if (props.itemTextRenderer)
-		selected = props.itemTextRenderer(selected);
-
-	return (
-		<Button {...props.buttonProps}>
-			{selected}
-		</Button>
-	);
-};
 
 export interface ISelectProps<T> extends ICommonSelectProps<T> {
 	/**
@@ -96,47 +52,165 @@ export interface ISelectProps<T> extends ICommonSelectProps<T> {
 	targetRenderer?: (selected: T) => React.ReactNode;
 }
 
-export const Select: React.FC<ISelectProps<any>> = <T extends {}>(props: ISelectProps<T>) => {
-	if (props.loading) {
-		return props.loadingSpinner || (
-			<Spinner intent={Intent.PRIMARY} size={Spinner.SIZE_SMALL} />
+interface IState {
+	width: number;
+}
+
+export class Select<T> extends React.PureComponent<ISelectProps<T>, IState> {
+	public static defaultProps: Partial<ISelectProps<unknown>> = {
+		buttonProps: {
+			alignText: 'left',
+			fill: true,
+			rightIcon: 'caret-down',
+		},
+		noItemSelected: 'Make a selection...',
+		noResults: 'No items match your search.',
+		resetOnClose: true,
+		scrollToActiveItem: true,
+		virtualOptions: {
+			maxHeight: 300,
+			rowHeight: 30,
+		},
+	};
+
+	public state: Readonly<IState> = {
+		width: 0,
+	};
+
+	public render(): React.ReactNode {
+		if (this.props.loading) {
+			return this.props.loadingSpinner || (
+				<Spinner intent={Intent.PRIMARY} size={Spinner.SIZE_SMALL} />
+			);
+		}
+
+		let items = this.props.items;
+
+		if (this.props.omit && this.props.omit.length)
+			items = items.filter(item => this.props.omit.indexOf(item) === -1);
+
+		let target: React.ReactNode;
+
+		if (this.props.targetRenderer)
+			target = this.props.targetRenderer(this.props.selected);
+		else {
+			let selected: any = this.props.selected;
+
+			if (!selected)
+				selected = this.props.noItemSelected;
+			else if (this.props.itemTextRenderer)
+				selected = this.props.itemTextRenderer(selected);
+
+			target = (
+				<Button {...this.props.buttonProps}>
+					{selected}
+				</Button>
+			);
+		}
+
+		return (
+			<BlueprintSelect
+				disabled={this.props.disabled}
+				filterable={this.isFilterable()}
+				items={items}
+				itemListRenderer={this.isVirtual() ? this.renderVirtualItemList : this.props.itemListRenderer}
+				itemListPredicate={this.props.itemListPredicate}
+				itemPredicate={this.props.itemPredicate}
+				itemRenderer={this.props.itemRenderer || this.renderItem}
+				noResults={this.props.noResults}
+				onItemSelect={this.props.onItemSelect}
+				popoverProps={this.props.popoverProps}
+				resetOnClose={this.props.resetOnClose}
+				resetOnQuery={this.props.resetOnQuery}
+				resetOnSelect={this.props.resetOnSelect}
+				scrollToActiveItem={this.props.scrollToActiveItem}
+			>
+				{target}
+			</BlueprintSelect>
 		);
 	}
 
-	let items = props.items;
+	private renderVirtualItemList: ItemListRenderer<T> = props => {
+		const options = this.props.virtualOptions;
+		const items = props.filteredItems;
 
-	if (props.omit && props.omit.length)
-		items = items.filter(item => props.omit.indexOf(item) === -1);
+		const height = Math.min(options.maxHeight, items.length * options.rowHeight);
 
-	return (
-		<BlueprintSelect
-			disabled={props.disabled}
-			filterable={props.filterable && (props.itemListPredicate !== null || props.itemPredicate !== null)}
-			items={items}
-			itemListPredicate={props.itemListPredicate}
-			itemPredicate={props.itemPredicate}
-			itemRenderer={createItemRenderer(props)}
-			noResults={props.noResults}
-			onItemSelect={props.onItemSelect}
-			popoverProps={props.popoverProps}
-			resetOnClose={props.resetOnClose}
-			resetOnQuery={props.resetOnQuery}
-			resetOnSelect={props.resetOnSelect}
-		>
-			{renderTarget(props)}
-		</BlueprintSelect>
-	);
-};
+		let scrollIndex: number = undefined;
 
-Select.defaultProps = {
-	buttonProps: {
-		alignText: 'left',
-		fill: true,
-		rightIcon: 'caret-down',
-	},
-	disabled: false,
-	loading: false,
-	noItemSelected: 'Make a selection...',
-	noResults: 'No items match your search.',
-	resetOnClose: true,
-};
+		if (this.props.scrollToActiveItem)
+			scrollIndex = items.indexOf(props.activeItem) + 1;
+
+		return (
+			<div>
+				<ResizeSensor onResize={this.onMenuResize}>
+					<Menu ulRef={this.handleMenuRef}>
+						<List
+							height={height}
+							rowHeight={options.rowHeight}
+							rowCount={items.length}
+							width={this.state.width}
+							rowRenderer={({key, style, index}) => (
+								<div key={key} style={style}>
+									{props.renderItem(items[index], index)}
+								</div>
+							)}
+							overscanRowCount={options.overscanRowCount}
+							scrollToIndex={scrollIndex}
+						/>
+					</Menu>
+				</ResizeSensor>
+			</div>
+		);
+	};
+
+	private renderItem = (item: T, props: IItemRendererProps) => {
+		if (!props.modifiers.matchesPredicate)
+			return null;
+
+		let text: React.ReactNode = item;
+
+		if (this.props.itemTextRenderer)
+			text = this.props.itemTextRenderer(item);
+
+		const key = (this.props.itemKey ? item[this.props.itemKey] as unknown : item) as React.Key;
+
+		return (
+			<MenuItem
+				active={props.modifiers.active}
+				icon={item === this.props.selected ? 'tick' : 'blank'}
+				key={key}
+				text={text}
+				onClick={props.handleClick}
+			/>
+		);
+	};
+
+	private handleMenuRef = (ref: HTMLUListElement) => {
+		if (!ref) {
+			this.setState({
+				width: 0,
+			});
+
+			return;
+		}
+
+		ref.style.overflow = 'hidden';
+
+		this.setState({
+			width: ref.offsetWidth,
+		});
+	};
+
+	private onMenuResize = (entries: IResizeEntry[]) => this.setState({
+		width: entries[0].contentRect.width,
+	});
+
+	private isFilterable = () => {
+		const props = this.props;
+
+		return props.filterable && (props.itemListPredicate !== null || props.itemPredicate !== null);
+	};
+
+	private isVirtual = () => this.props.virtual;
+}
