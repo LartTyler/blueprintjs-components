@@ -21,7 +21,7 @@ const createItemRenderer = <T extends any>(props: IMultiSelectProps<T>) => {
 		return (
 			<MenuItem
 				active={rendererProps.modifiers.active}
-				icon={props.selected.indexOf(item) === -1  ? 'blank' : 'tick'}
+				icon={props.selected.indexOf(item) === -1 ? 'blank' : 'tick'}
 				key={key}
 				text={text}
 				onClick={rendererProps.handleClick}
@@ -97,9 +97,7 @@ export const MultiSelect: React.FC<IMultiSelectProps<any>> = <T extends any>(pro
 				icon="cross"
 				minimal={true}
 				onClick={props.onClear}
-			>
-
-			</Button>
+			/>
 		),
 	};
 
