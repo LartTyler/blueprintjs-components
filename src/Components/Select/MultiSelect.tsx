@@ -112,7 +112,7 @@ export class MultiSelect<T> extends React.PureComponent<IMultiSelectProps<T>, IS
 			scrollIndex = items.indexOf(props.activeItem) + 1;
 
 		return (
-			<div style={{marginBottom: 5}}>
+			<div>
 				<ResizeSensor onResize={this.onMenuResize}>
 					<Menu ulRef={this.handleMenuRef}>
 						<List
