@@ -1,3 +1,2 @@
-export * from './Components/Grid';
-export * from './Components/Select';
-export * from './Components/Table';
+export * from './Components';
+export * from './Utility';

@@ -18,8 +18,10 @@
 	"dependencies": {
 		"@blueprintjs/core": "~3.10",
 		"@blueprintjs/select": "~3.4",
+		"@types/debounce": "^1.2.0",
 		"@types/react": "~16.7",
 		"@types/react-dom": "~16.0",
+		"debounce": "^1.2.0",
 		"flexboxgrid": "~6.3",
 		"react": "~16.6",
 		"react-dom": "~16.6",
