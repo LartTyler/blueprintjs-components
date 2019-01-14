@@ -82,6 +82,12 @@ export type FetchHashStatsCallback = (
 	compromisedHashes?: string[],
 ) => Promise<IHashStats>;
 
+/**
+ * Checks a password against the HaveIBeenPwned compromised password database.
+ *
+ * This method uses {@see window.crypto} to calculate the password's hash, which may not be suitable for all browsers.
+ * Ensure that your target browsers implement {@see window.crypto} or that your project includes a polyfill.
+ */
 export const getHIBPHashStats: FetchHashStatsCallback = (password, tests, compromisedHashes) => {
 	const encoder = new TextEncoder();
 
@@ -134,20 +140,92 @@ export const getHIBPHashStats: FetchHashStatsCallback = (password, tests, compro
 };
 
 export interface IPasswordStrengthMeterProps {
+	/**
+	 * The password to measure.
+	 */
 	password: string;
 
+	/**
+	 * An extra list of compromised password hashes. If the default password stats algorithm is used, these should be
+	 * an array of SHA-1 encoded password hashes. If {@see password} matches any hash in this list, the password is
+	 * considered compromised.
+	 */
 	compromisedHashes?: string[];
+
+	/**
+	 * If provided, overrides the default {@see Intent} to use for a compromised password.
+	 *
+	 * Default: {@see Intent.DANGER}
+	 */
 	compromisedIntent?: Intent;
+
+	/**
+	 * If provided, overrides the default label for compromised passwords.
+	 *
+	 * Default: "Compromised..."
+	 */
 	compromisedLabel?: React.ReactNode;
+
+	/**
+	 * If provided, overrides the default warning message for a compromised password.
+	 *
+	 * Default: "The password you entered is in a database of compromised passwords. Please choose another."
+	 */
 	compromisedPasswordWarning?: React.ReactNode;
+
+	/**
+	 * A callback to invoke when the strength of a password changes. Password stats are recalculated after a password
+	 * changes (default behavior debounces changes for 350ms).
+	 */
 	onChange?: PasswordStrengthChangeCallback;
+
+	/**
+	 * A callback to invoke when recalculating hash stats. If provided, the callback overrides the default behavior of
+	 * invoking {@see getHIBPHashStats}.
+	 */
 	onFetchHashStats?: FetchHashStatsCallback;
+
+	/**
+	 * Overrides the default debounce window (in milliseconds) for invocations of {@see onFetchHashStats}.
+	 *
+	 * Default: 350
+	 */
 	onFetchHashStatsDebounce?: number;
+
+	/**
+	 * If provided, overrides the default intent for the meter when processing hash stats.
+	 *
+	 * Default: {@see Intent.PRIMARY}
+	 */
 	processingIntent?: Intent;
+
+	/**
+	 * If provided, overrides the default label for the meter when processing hash stats.
+	 *
+	 * Default: "Processing..."
+	 */
 	processingLabel?: React.ReactNode;
+
+	/**
+	 * An element to render to the right of the password strength label (above the meter).
+	 */
 	rightElement?: React.ReactNode;
+
+	/**
+	 * Overrides the default strength level names and intents.
+	 */
 	strengths?: IStrengthLevel[];
+
+	/**
+	 * Overrides the default prefix for the password strength label.
+	 *
+	 * Default: "Strength: "
+	 */
 	strengthLabelPrefix?: React.ReactNode;
+
+	/**
+	 * Overrides the default password strengths tests.
+	 */
 	strengthTests?: PasswordStrengthTest[];
 }
 
