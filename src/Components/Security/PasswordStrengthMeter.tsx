@@ -142,6 +142,7 @@ export interface IPasswordStrengthMeterProps {
 	compromisedPasswordWarning?: React.ReactNode;
 	onChange?: PasswordStrengthChangeCallback;
 	onFetchHashStats?: FetchHashStatsCallback;
+	onFetchHashStatsDebounce?: number;
 	processingIntent?: Intent;
 	processingLabel?: React.ReactNode;
 	rightElement?: React.ReactNode;
@@ -167,6 +168,7 @@ export class PasswordStrengthMeter extends React.PureComponent<IPasswordStrength
 			</p>
 		),
 		onFetchHashStats: getHIBPHashStats,
+		onFetchHashStatsDebounce: 350,
 		processingIntent: Intent.PRIMARY,
 		processingLabel: 'Processing...',
 		strengths: defaultStrengths,
@@ -181,21 +183,18 @@ export class PasswordStrengthMeter extends React.PureComponent<IPasswordStrength
 		strength: 0,
 	};
 
-	protected doUpdateHashStatsDebounced = debounce(() => {
-		this.props.onFetchHashStats(this.props.password, this.props.strengthTests, this.props.compromisedHashes)
-			.then(stats => this.setState({
-				...stats,
-				processing: false,
-			}));
-	});
-
 	public componentDidMount(): void {
+		this.doUpdateHashStatsDebounced = this.createDebouncedHashStatsUpdate();
+
 		this.updateHashStats();
 	}
 
 	public componentDidUpdate(prevProps: Readonly<IPasswordStrengthMeterProps>): void {
 		if (prevProps.password === this.props.password)
 			return;
+
+		if (prevProps.onFetchHashStatsDebounce !== this.props.onFetchHashStatsDebounce)
+			this.doUpdateHashStatsDebounced = this.createDebouncedHashStatsUpdate();
 
 		this.updateHashStats();
 	}
@@ -259,5 +258,19 @@ export class PasswordStrengthMeter extends React.PureComponent<IPasswordStrength
 		});
 
 		this.doUpdateHashStatsDebounced();
+	};
+
+	protected doUpdateHashStatsDebounced: () => void = () => {
+		throw new Error('doUpdateHashStatsDebounced invoked before being initialized!');
+	};
+
+	protected createDebouncedHashStatsUpdate = () => {
+		return debounce(() => {
+			this.props.onFetchHashStats(this.props.password, this.props.strengthTests, this.props.compromisedHashes)
+				.then(stats => this.setState({
+					...stats,
+					processing: false,
+				}));
+		}, this.props.onFetchHashStatsDebounce);
 	};
 }
