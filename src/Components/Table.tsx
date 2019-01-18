@@ -102,6 +102,15 @@ export interface ITableProps<T> {
 	 * A dictionary of properties to apply to the wrapped {@see HTMLTable} component.
 	 */
 	htmlTableProps?: IHTMLTableProps;
+
+	/**
+	 * If provided, the table will only render a subset of {@see dataSource}, based on the values of `page` and
+	 * `pageSize`.
+	 */
+	paging?: {
+		page: number;
+		pageSize: number;
+	},
 }
 
 export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
@@ -175,7 +184,15 @@ export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
 		const rows: React.ReactNode[] = [];
 		const dataSource = this.filterRows(this.props.dataSource);
 
-		for (let index = 0; index < dataSource.length; index++) {
+		let startIndex: number = 0;
+		let endIndex: number = dataSource.length - 1;
+
+		if (this.props.paging) {
+			startIndex = (this.props.paging.page - 1) * this.props.paging.pageSize;
+			endIndex = startIndex + this.props.paging.pageSize;
+		}
+
+		for (let index = startIndex; index <= endIndex; index++) {
 			const datum = dataSource[index];
 			const cells = this.getCells(datum, index);
 
