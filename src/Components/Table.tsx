@@ -102,6 +102,16 @@ export interface ITableProps<T> {
 	 * A dictionary of properties to apply to the wrapped {@see HTMLTable} component.
 	 */
 	htmlTableProps?: IHTMLTableProps;
+
+	/**
+	 * If provided, only the specified page of {@see dataSource} will be rendered. Page numbers start at 1.
+	 */
+	page?: number;
+
+	/**
+	 * Specifies the size of each page. Defaults to 25.
+	 */
+	pageSize?: number;
 }
 
 export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
@@ -111,6 +121,7 @@ export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
 		htmlTableProps: {},
 		loading: false,
 		styles: {},
+		pageSize: 25,
 	};
 
 	public render(): JSX.Element {
@@ -175,7 +186,15 @@ export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
 		const rows: React.ReactNode[] = [];
 		const dataSource = this.filterRows(this.props.dataSource);
 
-		for (let index = 0; index < dataSource.length; index++) {
+		let startIndex: number = 0;
+		let endIndex: number = dataSource.length - 1;
+
+		if (this.props.page) {
+			startIndex = (this.props.page - 1) * this.props.pageSize;
+			endIndex = startIndex + this.props.pageSize;
+		}
+
+		for (let index = startIndex; index <= endIndex; index++) {
 			const datum = dataSource[index];
 			const cells = this.getCells(datum, index);
 

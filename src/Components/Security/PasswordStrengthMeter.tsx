@@ -1,7 +1,7 @@
 import {Colors, Intent, ProgressBar} from '@blueprintjs/core';
 import {debounce} from 'debounce';
 import * as React from 'react';
-import {toHex} from '../../Utility/buffer';
+import {toHex} from '../../Utility';
 import {Cell, Row} from '../Grid';
 
 export type PasswordStrengthChangeCallback = (strength: number, compromised: boolean) => void;
@@ -288,7 +288,7 @@ export class PasswordStrengthMeter extends React.PureComponent<IPasswordStrength
 			const strengths = this.props.strengths;
 
 			for (let i = strengths.length - 1; i >= 0; i--) {
-				if (strengths[i].value >= this.state.strength) {
+				if (this.state.strength >= strengths[i].value) {
 					intent = strengths[i].intent;
 					label = strengths[i].label;
 
