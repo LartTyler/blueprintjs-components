@@ -238,6 +238,7 @@ interface IState {
 
 export class PasswordStrengthMeter extends React.PureComponent<IPasswordStrengthMeterProps, IState> {
 	public static defaultProps: Partial<IPasswordStrengthMeterProps> = {
+		compromisedHashes: [],
 		compromisedIntent: Intent.DANGER,
 		compromisedLabel: 'Compromised...',
 		compromisedPasswordWarning: (
