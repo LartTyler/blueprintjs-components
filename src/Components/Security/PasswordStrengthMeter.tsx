@@ -1,7 +1,7 @@
 import {Colors, Intent, ProgressBar} from '@blueprintjs/core';
 import {debounce} from 'debounce';
 import * as React from 'react';
-import {toHex} from '../../Utility/buffer';
+import {toHex} from '../../Utility';
 import {Cell, Row} from '../Grid';
 
 export type PasswordStrengthChangeCallback = (strength: number, compromised: boolean) => void;
