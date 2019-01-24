@@ -104,13 +104,14 @@ export interface ITableProps<T> {
 	htmlTableProps?: IHTMLTableProps;
 
 	/**
-	 * If provided, the table will only render a subset of {@see dataSource}, based on the values of `page` and
-	 * `pageSize`.
+	 * If provided, only the specified page of {@see dataSource} will be rendered. Page numbers start at 1.
 	 */
-	paging?: {
-		page: number;
-		pageSize: number;
-	},
+	page?: number;
+
+	/**
+	 * Specifies the size of each page. Defaults to 25.
+	 */
+	pageSize?: number;
 }
 
 export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
@@ -120,6 +121,7 @@ export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
 		htmlTableProps: {},
 		loading: false,
 		styles: {},
+		pageSize: 25,
 	};
 
 	public render(): JSX.Element {
@@ -187,9 +189,9 @@ export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
 		let startIndex: number = 0;
 		let endIndex: number = dataSource.length - 1;
 
-		if (this.props.paging) {
-			startIndex = (this.props.paging.page - 1) * this.props.paging.pageSize;
-			endIndex = startIndex + this.props.paging.pageSize;
+		if (this.props.page) {
+			startIndex = (this.props.page - 1) * this.props.pageSize;
+			endIndex = startIndex + this.props.pageSize;
 		}
 
 		for (let index = startIndex; index <= endIndex; index++) {
