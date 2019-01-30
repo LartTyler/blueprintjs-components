@@ -101,8 +101,12 @@ export class Select<T> extends React.PureComponent<ISelectProps<T>, IState> {
 			else if (this.props.itemTextRenderer)
 				selected = this.props.itemTextRenderer(selected);
 
+			const disabled = typeof this.props.buttonProps.disabled !== 'undefined' ?
+				this.props.buttonProps.disabled :
+				this.props.disabled;
+
 			target = (
-				<Button {...this.props.buttonProps}>
+				<Button {...this.props.buttonProps} disabled={disabled}>
 					{selected}
 				</Button>
 			);
