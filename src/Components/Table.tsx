@@ -191,7 +191,7 @@ export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
 
 		if (this.props.page) {
 			startIndex = (this.props.page - 1) * this.props.pageSize;
-			endIndex = startIndex + this.props.pageSize;
+			endIndex = Math.min(startIndex + this.props.pageSize, dataSource.length - 1);
 		}
 
 		for (let index = startIndex; index <= endIndex; index++) {
