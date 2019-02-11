@@ -195,6 +195,7 @@ export class Table<T> extends React.PureComponent<ITableProps<T>, IState> {
 			styles.width = '100%';
 
 		const page = this.props.page || this.state.page;
+		const pages = this.props.pageSize ? Math.ceil(dataSource.length / this.props.pageSize) : 1;
 
 		return (
 			<>
@@ -210,12 +211,12 @@ export class Table<T> extends React.PureComponent<ITableProps<T>, IState> {
 					</tbody>
 				</HTMLTable>
 
-				{!!this.props.pageSize && (
+				{!!this.props.pageSize && pages > 1 && (
 					<div style={{textAlign: 'right', marginTop: 10}}>
 						{this.props.pagination || <Pagination
 							page={page}
 							pageCountPosition="left"
-							pages={Math.ceil(dataSource.length / this.props.pageSize)}
+							pages={pages}
 							onChange={this.onPaginationChange}
 						/>}
 					</div>
