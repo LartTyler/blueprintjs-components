@@ -1,5 +1,6 @@
 import {HTMLTable, IHTMLTableProps, Intent, Spinner} from '@blueprintjs/core';
 import * as React from 'react';
+import {PageButtonClickHandler, Pagination} from './Pagination';
 
 export interface IColumn<T> {
 	/**
@@ -83,6 +84,18 @@ export interface ITableProps<T> {
 	noDataPlaceholder?: React.ReactNode;
 
 	/**
+	 * A callback to provide to the default {@see Pagination} component. This property is ignored if {@see pagination}
+	 * is set.
+	 */
+	onPaginationChange?: PageButtonClickHandler;
+
+	/**
+	 * A callback to invoke after {@see searchText} has been applied to any column filters. The `filtered` argument will
+	 * contain the list of rows that were matched during the search, and will be rendered in the table.
+	 */
+	onSearch?: (filtered: T[]) => void;
+
+	/**
 	 * A dictionary of CSS styles to apply to the wrapped {@see HTMLTable} component.
 	 */
 	styles?: React.CSSProperties;
@@ -112,17 +125,45 @@ export interface ITableProps<T> {
 	 * Specifies the size of each page. Defaults to 25.
 	 */
 	pageSize?: number;
+
+	/**
+	 * Provides a replacement pagination element to use instead of the default {@see Pagination} component.
+	 */
+	pagination?: React.ReactNode;
 }
 
-export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
+interface IState {
+	page: number;
+}
+
+export class Table<T> extends React.PureComponent<ITableProps<T>, IState> {
 	public static defaultProps: Partial<ITableProps<any>> = {
 		dataSource: [],
 		fullWidth: false,
 		htmlTableProps: {},
 		loading: false,
 		styles: {},
-		pageSize: 25,
+		page: null,
+		pageSize: null,
 	};
+
+	public state: Readonly<IState> = {
+		page: 1,
+	};
+
+	public componentDidUpdate(prevProps: Readonly<ITableProps<T>>): void {
+		if (this.props.searchText === prevProps.searchText)
+			return;
+
+		if (this.props.page) {
+			if (this.props.onPaginationChange)
+				this.props.onPaginationChange(1, null);
+		} else if (this.props.pageSize) {
+			this.setState({
+				page: 1,
+			});
+		}
+	}
 
 	public render(): JSX.Element {
 		if (this.props.loading) {
@@ -137,7 +178,8 @@ export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
 			);
 		}
 
-		const rows = this.getRows();
+		const dataSource = this.filterRows(this.props.dataSource);
+		const rows = this.getRows(dataSource);
 
 		if (rows.length === 0 && this.props.noDataPlaceholder) {
 			return (
@@ -152,18 +194,33 @@ export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
 		if (this.props.fullWidth)
 			styles.width = '100%';
 
-		return (
-			<HTMLTable style={styles} {...this.props.htmlTableProps}>
-				<thead>
-					<tr>
-						{this.getHeaders()}
-					</tr>
-				</thead>
+		const page = this.props.page || this.state.page;
 
-				<tbody>
-					{rows}
-				</tbody>
-			</HTMLTable>
+		return (
+			<>
+				<HTMLTable style={styles} {...this.props.htmlTableProps}>
+					<thead>
+						<tr>
+							{this.getHeaders()}
+						</tr>
+					</thead>
+
+					<tbody>
+						{rows}
+					</tbody>
+				</HTMLTable>
+
+				{!!this.props.pageSize && (
+					<div style={{textAlign: 'right', marginTop: 10}}>
+						{this.props.pagination || <Pagination
+							page={page}
+							pageCountPosition="left"
+							pages={Math.ceil(dataSource.length / this.props.pageSize)}
+							onChange={this.onPaginationChange}
+						/>}
+					</div>
+				)}
+			</>
 		);
 	}
 
@@ -182,15 +239,19 @@ export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
 		});
 	}
 
-	private getRows(): React.ReactNode[] {
+	private getRows(dataSource: T[]): React.ReactNode[] {
 		const rows: React.ReactNode[] = [];
-		const dataSource = this.filterRows(this.props.dataSource);
+
+		if (this.props.onSearch)
+			this.props.onSearch(dataSource);
 
 		let startIndex: number = 0;
 		let endIndex: number = dataSource.length - 1;
 
-		if (this.props.page) {
-			startIndex = (this.props.page - 1) * this.props.pageSize;
+		if (this.props.pageSize) {
+			const page = this.props.page || this.state.page;
+
+			startIndex = (page - 1) * this.props.pageSize;
 			endIndex = Math.min(startIndex + this.props.pageSize - 1, endIndex);
 		}
 
@@ -274,6 +335,19 @@ export class Table<T> extends React.PureComponent<ITableProps<T>, {}> {
 			}
 
 			return false;
+		});
+	};
+
+	private onPaginationChange: PageButtonClickHandler = (page, jumpType) => {
+		if (this.props.page) {
+			if (this.props.onPaginationChange)
+				this.props.onPaginationChange(page, jumpType);
+
+			return;
+		}
+
+		this.setState({
+			page,
 		});
 	};
 }
