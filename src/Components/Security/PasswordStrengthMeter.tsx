@@ -4,7 +4,7 @@ import * as React from 'react';
 import {toHex} from '../../Utility';
 import {Cell, Row} from '../Grid';
 
-export type PasswordStrengthChangeCallback = (strength: number, compromised: boolean) => void;
+export type PasswordStrengthChangeCallback = (stats: IHashStats) => void;
 
 export interface IStrengthLevel {
 	intent: Intent;
@@ -346,10 +346,15 @@ export class PasswordStrengthMeter extends React.PureComponent<IPasswordStrength
 	protected createDebouncedHashStatsUpdate = () => {
 		return debounce(() => {
 			this.props.onFetchHashStats(this.props.password, this.props.strengthTests, this.props.compromisedHashes)
-				.then(stats => this.setState({
-					...stats,
-					processing: false,
-				}));
+				.then(stats => {
+					this.setState({
+						...stats,
+						processing: false,
+					});
+
+					if (this.props.onChange)
+						this.props.onChange(stats);
+				});
 		}, this.props.onFetchHashStatsDebounce);
 	};
 }
