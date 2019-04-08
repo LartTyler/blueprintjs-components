@@ -47,27 +47,12 @@ const defaultStrengths: IStrengthLevel[] = [
 
 export type PasswordStrengthTest = (password: string) => number;
 
-const defaultTestRegexes = [
-	/[A-Z]/,
-	/[a-z]/,
-	/\d/,
-	/[!@#$%^&*(),.?"':;\[\]{}|<>\-_+\/\\]/,
-];
-
 const defaultStrengthTests: PasswordStrengthTest[] = [
-	(password: string) => {
-		if (password.length === 0)
-			return 0;
-
-		let strength: number = 1;
-
-		for (const regex of defaultTestRegexes) {
-			if (regex.test(password))
-				++strength;
-		}
-
-		return strength;
-	},
+	password => +(password.length > 0),
+	password => +(/[A-Z]/.test(password)),
+	password => +(/[a-z]/.test(password)),
+	password => +(/\d/.test(password)),
+	password => +(/[!@#$%^&*(),.?"':;\[\]{}|<>\-_+\/\\]/.test(password)),
 ];
 
 export interface IHashStats {
