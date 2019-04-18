@@ -49,6 +49,7 @@ interface IState {
 export class MultiSelect<T> extends React.PureComponent<IMultiSelectProps<T>, IState> {
 	public static defaultProps: Partial<IMultiSelectProps<any>> = {
 		noItemSelected: 'Make a selection...',
+		noResults: 'No items match your search.',
 		scrollToActiveItem: true,
 		virtualOptions: {
 			maxHeight: 297,
@@ -87,6 +88,7 @@ export class MultiSelect<T> extends React.PureComponent<IMultiSelectProps<T>, IS
 				items={this.props.items}
 				itemListRenderer={this.isVirtual() ? this.renderVirtualItemList : this.props.itemListRenderer}
 				itemRenderer={this.props.itemRenderer || this.renderItem}
+				noResults={this.props.noResults}
 				onItemSelect={this.onItemSelect}
 				placeholder={this.props.noItemSelected}
 				popoverProps={this.props.popoverProps}

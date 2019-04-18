@@ -31,11 +31,6 @@ export interface ISelectProps<T> extends ICommonSelectProps<T> {
 	noItemSelected?: React.ReactNode;
 
 	/**
-	 * Default text to render if a predicate matches no items.
-	 */
-	noResults?: React.ReactNode;
-
-	/**
 	 * An array of items that should be omitted from the list.
 	 */
 	omit?: T[];

@@ -64,6 +64,11 @@ export interface ICommonSelectProps<T> {
 	loadingSpinner?: JSX.Element;
 
 	/**
+	 * Default element to render if a predicate matches no items.
+	 */
+	noResults?: React.ReactNode;
+
+	/**
 	 * Props to pass to the wrapped popover object.
 	 */
 	popoverProps?: Partial<IPopoverProps> & object;
