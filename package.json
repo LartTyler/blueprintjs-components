@@ -9,7 +9,7 @@
 	"repository": "https://github.com/LartTyler/blueprintjs-components.git",
 	"private": false,
 	"scripts": {
-		"build": "rm -rf ./dist && tsc",
+		"build": "rimraf -rf ./dist && tsc",
 		"watch": "tsc --watch --sourceMap"
 	},
 	"files": [
@@ -30,6 +30,7 @@
 		"utility-types": "^2.1.0"
 	},
 	"devDependencies": {
-		"@types/react-virtualized": "^9.18.11"
+		"@types/react-virtualized": "^9.18.11",
+		"rimraf": "^3.0.2"
 	}
 }
