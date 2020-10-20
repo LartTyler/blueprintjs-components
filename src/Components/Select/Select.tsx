@@ -31,11 +31,6 @@ export interface ISelectProps<T> extends ICommonSelectProps<T> {
 	noItemSelected?: React.ReactNode;
 
 	/**
-	 * An array of items that should be omitted from the list.
-	 */
-	omit?: T[];
-
-	/**
 	 * Whether or not the active item should reset to the first matched item every time the list closes.
 	 */
 	resetOnClose?: boolean;

@@ -69,6 +69,11 @@ export interface ICommonSelectProps<T> {
 	noResults?: React.ReactNode;
 
 	/**
+	 * An array of items that should be omitted from the list.
+	 */
+	omit?: T[];
+
+	/**
 	 * Props to pass to the wrapped popover object.
 	 */
 	popoverProps?: Partial<IPopoverProps> & object;

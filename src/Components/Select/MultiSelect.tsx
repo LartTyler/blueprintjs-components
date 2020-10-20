@@ -81,11 +81,16 @@ export class MultiSelect<T> extends React.PureComponent<IMultiSelectProps<T>, IS
 			),
 		};
 
+		let items = this.props.items;
+
+		if (this.props.omit && this.props.omit.length)
+			items = items.filter(item => this.props.omit.indexOf(item) === -1);
+
 		return (
 			<BlueprintMultiSelect
 				itemListPredicate={this.props.itemListPredicate}
 				itemPredicate={this.props.itemPredicate}
-				items={this.props.items}
+				items={items}
 				itemListRenderer={this.isVirtual() ? this.renderVirtualItemList : this.props.itemListRenderer}
 				itemRenderer={this.props.itemRenderer || this.renderItem}
 				noResults={this.props.noResults}
