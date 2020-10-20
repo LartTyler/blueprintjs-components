@@ -77,7 +77,7 @@ export class Select<T> extends React.PureComponent<ISelectProps<T>, IState> {
 		let items = this.props.items;
 
 		if (this.props.omit && this.props.omit.length)
-			items = items.filter(item => this.props.omit.indexOf(item) === -1);
+			items = (this.props.omitItemListComparer || this.compareOmitItemList)(items, this.props.omit);
 
 		let target: React.ReactNode;
 
@@ -207,4 +207,17 @@ export class Select<T> extends React.PureComponent<ISelectProps<T>, IState> {
 	};
 
 	private isVirtual = () => this.props.virtual;
+
+	private compareOmitItemList = (source: T[], omit: T[]) => {
+		const comparer = this.props.omitItemComparer || this.compareOmitItems;
+
+		return source.filter(item => omit.find(omission => comparer(item, omission)) !== undefined);
+	}
+
+	private compareOmitItems = (a: T, b: T) => {
+		if (this.props.itemKey)
+			return a[this.props.itemKey] === b[this.props.itemKey];
+
+		return a === b;
+	};
 }

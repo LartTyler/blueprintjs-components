@@ -74,6 +74,23 @@ export interface ICommonSelectProps<T> {
 	omit?: T[];
 
 	/**
+	 * A callback used to determine if two items are equal. Used by {@see omit} to determine if an item in {@see items}
+	 * is equal to an item in {@see omit}.
+	 *
+	 * Has no effect if the {@see omit} prop is not provided, or if {@see omitItemListComparer} is provided.
+	 */
+	omitItemComparer?: (a: T, b: T) => boolean;
+
+	/**
+	 * A callback used to remove from the `source` array any items contained in the `omit` array. Used by {@see omit} to
+	 * skip rendering any items in {@see items} when a simple equality check isn't enough to determine if two items are
+	 * equal.
+	 *
+	 * Takes precedence over {@see omitItemComparer}.
+	 */
+	omitItemListComparer?: (source: T[], omit: T[]) => T[];
+
+	/**
 	 * Props to pass to the wrapped popover object.
 	 */
 	popoverProps?: Partial<IPopoverProps> & object;
