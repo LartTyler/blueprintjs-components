@@ -197,7 +197,7 @@ export class MultiSelect<T> extends React.PureComponent<IMultiSelectProps<T>, IS
 	private compareOmitItemList = (source: T[], omit: T[]) => {
 		const comparer = this.props.omitItemComparer || this.compareOmitItems;
 
-		return source.filter(item => omit.find(omission => comparer(item, omission)) !== undefined);
+		return source.filter(item => omit.find(omission => comparer(item, omission)) === undefined);
 	}
 
 	private compareOmitItems = (a: T, b: T) => {
