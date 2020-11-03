@@ -218,6 +218,8 @@ export class Select<T> extends React.PureComponent<ISelectProps<T>, IState> {
 			return a[this.props.itemsEqual] === b[this.props.itemsEqual];
 		else if (typeof this.props.itemsEqual === 'function')
 			return this.props.itemsEqual(a, b);
+		else if (this.props.itemKey)
+			return a[this.props.itemKey] === b[this.props.itemKey];
 
 		return a === b;
 	};
