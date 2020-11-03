@@ -169,11 +169,12 @@ export class Select<T> extends React.PureComponent<ISelectProps<T>, IState> {
 			text = this.props.itemTextRenderer(item);
 
 		const key = (this.props.itemKey ? item[this.props.itemKey] as unknown : item) as React.Key;
+		const selected = this.props.selected && this.compareItems(item, this.props.selected);
 
 		return (
 			<MenuItem
 				active={props.modifiers.active}
-				icon={this.compareItems(item, this.props.selected) ? 'tick' : 'blank'}
+				icon={selected ? 'tick' : 'blank'}
 				key={key}
 				text={text}
 				onClick={props.handleClick}
