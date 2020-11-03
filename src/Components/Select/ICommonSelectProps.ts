@@ -1,5 +1,5 @@
 import {IPopoverProps} from '@blueprintjs/core';
-import {ItemListPredicate, ItemListRenderer, ItemPredicate, ItemRenderer} from '@blueprintjs/select';
+import {ItemListPredicate, ItemListRenderer, ItemPredicate, ItemRenderer, ItemsEqualProp} from '@blueprintjs/select';
 import * as React from 'react';
 
 export interface IVirtualConfiguration {
@@ -44,7 +44,12 @@ export interface ICommonSelectProps<T> {
 	/**
 	 * A replacement renderer for the built-in {@see MenuItem} renderer.
 	 */
-	itemRenderer?: ItemRenderer<T>
+	itemRenderer?: ItemRenderer<T>;
+
+	/**
+	 * Used to override strict equality checks for item equality.
+	 */
+	itemsEqual?: ItemsEqualProp<T>;
 
 	/**
 	 * A callback to use to render the display text of each item. If not provided, the item itself will be rendered
@@ -72,23 +77,6 @@ export interface ICommonSelectProps<T> {
 	 * An array of items that should be omitted from the list.
 	 */
 	omit?: T[];
-
-	/**
-	 * A callback used to determine if two items are equal. Used by {@see omit} to determine if an item in {@see items}
-	 * is equal to an item in {@see omit}.
-	 *
-	 * Has no effect if the {@see omit} prop is not provided, or if {@see omitItemListComparer} is provided.
-	 */
-	omitItemComparer?: (a: T, b: T) => boolean;
-
-	/**
-	 * A callback used to remove from the `source` array any items contained in the `omit` array. Used by {@see omit} to
-	 * skip rendering any items in {@see items} when a simple equality check isn't enough to determine if two items are
-	 * equal.
-	 *
-	 * Takes precedence over {@see omitItemComparer}.
-	 */
-	omitItemListComparer?: (source: T[], omit: T[]) => T[];
 
 	/**
 	 * Props to pass to the wrapped popover object.

@@ -1,5 +1,5 @@
 import {Button, IButtonProps, Intent, IResizeEntry, Menu, MenuItem, ResizeSensor, Spinner} from '@blueprintjs/core';
-import {IItemRendererProps, ItemListRenderer, Select as BlueprintSelect} from '@blueprintjs/select';
+import {IItemRendererProps, isCreateNewItem, ItemListRenderer, Select as BlueprintSelect} from '@blueprintjs/select';
 import * as React from 'react';
 import {List} from 'react-virtualized';
 import {ICommonSelectProps} from './ICommonSelectProps';
@@ -77,7 +77,7 @@ export class Select<T> extends React.PureComponent<ISelectProps<T>, IState> {
 		let items = this.props.items;
 
 		if (this.props.omit && this.props.omit.length)
-			items = (this.props.omitItemListComparer || this.compareOmitItemList)(items, this.props.omit);
+			items = this.compareOmitItemList(items, this.props.omit);
 
 		let target: React.ReactNode;
 
@@ -111,6 +111,7 @@ export class Select<T> extends React.PureComponent<ISelectProps<T>, IState> {
 				itemListPredicate={this.props.itemListPredicate}
 				itemPredicate={this.props.itemPredicate}
 				itemRenderer={this.props.itemRenderer || this.renderItem}
+				itemsEqual={this.props.itemsEqual}
 				noResults={this.props.noResults}
 				onItemSelect={this.props.onItemSelect}
 				popoverProps={this.props.popoverProps}
@@ -132,7 +133,7 @@ export class Select<T> extends React.PureComponent<ISelectProps<T>, IState> {
 
 		let scrollIndex: number = undefined;
 
-		if (this.props.scrollToActiveItem)
+		if (this.props.scrollToActiveItem && !isCreateNewItem(props.activeItem))
 			scrollIndex = items.indexOf(props.activeItem) + 1;
 
 		return (
@@ -172,7 +173,7 @@ export class Select<T> extends React.PureComponent<ISelectProps<T>, IState> {
 		return (
 			<MenuItem
 				active={props.modifiers.active}
-				icon={item === this.props.selected ? 'tick' : 'blank'}
+				icon={this.compareItems(item, this.props.selected) ? 'tick' : 'blank'}
 				key={key}
 				text={text}
 				onClick={props.handleClick}
@@ -209,14 +210,14 @@ export class Select<T> extends React.PureComponent<ISelectProps<T>, IState> {
 	private isVirtual = () => this.props.virtual;
 
 	private compareOmitItemList = (source: T[], omit: T[]) => {
-		const comparer = this.props.omitItemComparer || this.compareOmitItems;
+		return source.filter(item => omit.find(omission => this.compareItems(item, omission)) === undefined);
+	};
 
-		return source.filter(item => omit.find(omission => comparer(item, omission)) === undefined);
-	}
-
-	private compareOmitItems = (a: T, b: T) => {
-		if (this.props.itemKey)
-			return a[this.props.itemKey] === b[this.props.itemKey];
+	private compareItems = (a: T, b: T) => {
+		if (typeof this.props.itemsEqual === 'string')
+			return a[this.props.itemsEqual] === b[this.props.itemsEqual];
+		else if (typeof this.props.itemsEqual === 'function')
+			return this.props.itemsEqual(a, b);
 
 		return a === b;
 	};

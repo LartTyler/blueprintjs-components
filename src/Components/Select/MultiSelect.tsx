@@ -1,5 +1,10 @@
 import {Button, Intent, IResizeEntry, ITagInputProps, Menu, MenuItem, ResizeSensor, Spinner} from '@blueprintjs/core';
-import {IItemRendererProps, ItemListRenderer, MultiSelect as BlueprintMultiSelect} from '@blueprintjs/select';
+import {
+	IItemRendererProps,
+	isCreateNewItem,
+	ItemListRenderer,
+	MultiSelect as BlueprintMultiSelect,
+} from '@blueprintjs/select';
 import * as React from 'react';
 import {List} from 'react-virtualized';
 import {ICommonSelectProps} from './ICommonSelectProps';
@@ -33,7 +38,7 @@ export interface IMultiSelectProps<T> extends ICommonSelectProps<T> {
 	/**
 	 * Props to pass to the the wrapped tag input.
 	 */
-	tagInputProps?: ITagInputProps;
+	tagInputProps?: Partial<ITagInputProps> & object;
 
 	/**
 	 * A replacement renderer for the built-in tag renderer (which renders a tag for the item by invoking
@@ -84,7 +89,7 @@ export class MultiSelect<T> extends React.PureComponent<IMultiSelectProps<T>, IS
 		let items = this.props.items;
 
 		if (this.props.omit && this.props.omit.length)
-			items = (this.props.omitItemListComparer || this.compareOmitItemList)(items, this.props.omit);
+			items = this.compareOmitItemList(items, this.props.omit);
 
 		return (
 			<BlueprintMultiSelect
@@ -115,7 +120,7 @@ export class MultiSelect<T> extends React.PureComponent<IMultiSelectProps<T>, IS
 
 		let scrollIndex: number = undefined;
 
-		if (this.props.scrollToActiveItem)
+		if (this.props.scrollToActiveItem && !isCreateNewItem(props.activeItem))
 			scrollIndex = items.indexOf(props.activeItem) + 1;
 
 		return (
@@ -151,11 +156,12 @@ export class MultiSelect<T> extends React.PureComponent<IMultiSelectProps<T>, IS
 			text = this.props.itemTextRenderer(item);
 
 		const key = (this.props.itemKey ? item[this.props.itemKey] as unknown : item) as React.Key;
+		const selected = this.props.selected.find(selectedItem => this.compareItems(item, selectedItem)) !== undefined;
 
 		return (
 			<MenuItem
 				active={props.modifiers.active}
-				icon={this.props.selected.indexOf(item) !== -1 ? 'tick' : 'blank'}
+				icon={selected ? 'tick' : 'blank'}
 				key={key}
 				text={text}
 				onClick={props.handleClick}
@@ -195,14 +201,14 @@ export class MultiSelect<T> extends React.PureComponent<IMultiSelectProps<T>, IS
 	private isVirtual = () => this.props.virtual;
 
 	private compareOmitItemList = (source: T[], omit: T[]) => {
-		const comparer = this.props.omitItemComparer || this.compareOmitItems;
+		return source.filter(item => omit.find(omission => this.compareItems(item, omission)) === undefined);
+	};
 
-		return source.filter(item => omit.find(omission => comparer(item, omission)) === undefined);
-	}
-
-	private compareOmitItems = (a: T, b: T) => {
-		if (this.props.itemKey)
-			return a[this.props.itemKey] === b[this.props.itemKey];
+	private compareItems = (a: T, b: T) => {
+		if (typeof this.props.itemsEqual === 'string')
+			return a[this.props.itemsEqual] === b[this.props.itemsEqual];
+		else if (typeof this.props.itemsEqual === 'function')
+			return this.props.itemsEqual(a, b);
 
 		return a === b;
 	};
